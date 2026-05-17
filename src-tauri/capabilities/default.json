@@ -1,0 +1,17 @@
+{
+  "identifier": "default",
+  "description": "Default capability set",
+  "windows": ["search"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-hide",
+    "core:window:allow-show",
+    "core:window:allow-close",
+    "core:window:allow-set-focus",
+    "core:window:allow-center",
+    "global-shortcut:default",
+    "shell:default",
+    "core:event:allow-emit",
+    "core:event:allow-listen"
+  ]
+}

@@ -1,0 +1,46 @@
+<script lang="ts">
+  import type { SearchResult } from "../tauri/types";
+  import ResultItem from "./ResultItem.svelte";
+
+  let {
+    results,
+    selectedIndex,
+    onSelect,
+  }: {
+    results: SearchResult[];
+    selectedIndex: number;
+    onSelect: (item: SearchResult, forceNew: boolean) => void;
+  } = $props();
+
+  let listEl: HTMLUListElement;
+
+  $effect(() => {
+    const idx = selectedIndex;
+    if (!listEl || idx < 0 || idx >= listEl.children.length) return;
+
+    // Wait for Svelte to commit the DOM update before scrolling
+    requestAnimationFrame(() => {
+      const item = listEl.children[idx] as HTMLElement;
+      const list = listEl;
+      const itemTop = item.offsetTop - list.offsetTop;
+      const listTop = list.scrollTop;
+      const listBottom = listTop + list.clientHeight;
+
+      if (itemTop < listTop) {
+        list.scrollTo({ top: itemTop - 8, behavior: "smooth" });
+      } else if (item.offsetTop + item.offsetHeight > listBottom) {
+        list.scrollTo({ top: item.offsetTop + item.offsetHeight - list.clientHeight + 8, behavior: "smooth" });
+      }
+    });
+  });
+</script>
+
+<ul class="result-list" bind:this={listEl}>
+  {#each results as item, i}
+    <ResultItem
+      {item}
+      selected={i === selectedIndex}
+      onSelect={(forceNew) => onSelect(item, forceNew)}
+    />
+  {/each}
+</ul>
