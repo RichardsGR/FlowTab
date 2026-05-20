@@ -25,6 +25,7 @@ pub trait Browser {
     fn get_open_tabs(&self) -> Result<Vec<OpenTab>, String>;
     fn activate_tab(&self, tab: &OpenTab) -> Result<(), String>;
     fn open_new_tab(&self, url: &str) -> Result<(), String>;
+    fn close_tab(&self, tab: &OpenTab) -> Result<(), String>;
     fn browser_type(&self) -> BrowserType;
 }
 

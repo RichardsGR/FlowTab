@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { getCurrentWindow } from "@tauri-apps/api/window";
-  import { searchPages, switchOrOpenTab, openNewTab, hideSearchWindow } from "../tauri/commands";
+  import { searchPages, switchOrOpenTab, openNewTab, closeTab, hideSearchWindow } from "../tauri/commands";
   import type { SearchResult } from "../tauri/types";
   import EmptyState from "./EmptyState.svelte";
   import ResultList from "./ResultList.svelte";
@@ -55,7 +55,18 @@
     }
   }
 
+  let tabModifier = $state(false);
+
   function handleKeyDown(e: KeyboardEvent) {
+    // Track Tab as modifier
+    if (e.key === "Tab") {
+      e.preventDefault();
+      if (results.length > 0 && results[selectedIndex]?.is_open) {
+        tabModifier = true;
+      }
+      return;
+    }
+
     if (e.key === "ArrowDown") {
       e.preventDefault();
       selectedIndex = Math.min(selectedIndex + 1, results.length - 1);
@@ -65,12 +76,29 @@
     } else if (e.key === "Enter") {
       e.preventDefault();
       if (results.length > 0 && results[selectedIndex]) {
-        const forceNew = e.ctrlKey || e.metaKey;
-        handleSelect(results[selectedIndex], forceNew);
+        if (tabModifier) {
+          // Tab+Enter: force new tab
+          handleSelect(results[selectedIndex], true);
+        } else {
+          handleSelect(results[selectedIndex], e.ctrlKey || e.metaKey);
+        }
+      }
+    } else if (e.key === "Backspace") {
+      if (tabModifier && results.length > 0 && results[selectedIndex]?.is_open) {
+        e.preventDefault();
+        // Tab+Backspace: close the tab in browser
+        closeTab(results[selectedIndex].entry.url).catch(() => {});
+        // Refresh search to update is_open status
+        doSearch(query);
       }
     } else if (e.key === "Escape") {
       e.preventDefault();
       hideWindow().catch(() => {});
+    }
+
+    // Reset tab modifier on any non-Tab key
+    if (e.key !== "Tab") {
+      tabModifier = false;
     }
   }
 
@@ -124,7 +152,16 @@
         <span class="empty-state-action" onclick={() => onNavigate("manager")}>添加新页面</span>
       </EmptyState>
     {:else}
-      <ResultList {results} {selectedIndex} onSelect={handleSelect} />
+      <ResultList
+        {results}
+        {selectedIndex}
+        onSelect={handleSelect}
+        onClose={(item) => {
+          closeTab(item.entry.url).catch(() => {});
+          doSearch(query);
+        }}
+        onForceNew={(item) => handleSelect(item, true)}
+      />
     {/if}
   </div>
 </div>

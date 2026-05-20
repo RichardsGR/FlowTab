@@ -128,6 +128,31 @@ impl Browser for EdgeBrowser {
         Ok(())
     }
 
+    fn close_tab(&self, tab: &OpenTab) -> Result<(), String> {
+        if !is_running() {
+            return Ok(());
+        }
+        let escaped_url = tab.url.replace('"', "\\\"");
+        let script = format!(
+            r#"tell application "Microsoft Edge"
+                repeat with w in every window
+                    repeat with t in every tab of w
+                        if URL of t starts with "{}" then
+                            close t
+                            return "closed"
+                        end if
+                    end repeat
+                end repeat
+            end tell"#,
+            escaped_url
+        );
+        match run_osascript(&script) {
+            Ok(r) if r == "closed" => Ok(()),
+            Ok(_) => Err("Tab not found".into()),
+            Err(e) => Err(e),
+        }
+    }
+
     fn browser_type(&self) -> BrowserType {
         BrowserType::Edge
     }

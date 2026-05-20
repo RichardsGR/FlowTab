@@ -80,6 +80,34 @@ impl Browser for ChromeBrowser {
         open_via_shell(url)
     }
 
+    fn close_tab(&self, tab: &OpenTab) -> Result<(), String> {
+        if !is_running() {
+            return Ok(());
+        }
+        // Close tab by URL matching (more reliable than index)
+        let escaped_url = tab.url.replace('"', "\\\"");
+        let script = format!(
+            r#"tell application "Google Chrome"
+                repeat with w in every window
+                    set tabIndex to 1
+                    repeat with t in every tab of w
+                        if URL of t starts with "{}" then
+                            close t
+                            return "closed"
+                        end if
+                        set tabIndex to tabIndex + 1
+                    end repeat
+                end repeat
+            end tell"#,
+            escaped_url
+        );
+        match run_osascript(&script) {
+            Ok(r) if r == "closed" => Ok(()),
+            Ok(_) => Err("Tab not found".into()),
+            Err(e) => Err(e),
+        }
+    }
+
     fn browser_type(&self) -> BrowserType {
         BrowserType::Chrome
     }

@@ -53,6 +53,10 @@ export async function analyzeHistory(): Promise<number> {
   return invoke("analyze_history");
 }
 
+export async function closeTab(url: string): Promise<void> {
+  return invoke("close_tab", { url });
+}
+
 export async function cleanDuplicatePages(): Promise<number> {
   return invoke("clean_duplicate_pages");
 }

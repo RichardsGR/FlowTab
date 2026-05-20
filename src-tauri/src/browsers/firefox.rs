@@ -31,6 +31,10 @@ impl Browser for FirefoxBrowser {
         Ok(())
     }
 
+    fn close_tab(&self, _tab: &OpenTab) -> Result<(), String> {
+        Err("Firefox tab closing not yet supported".into())
+    }
+
     fn browser_type(&self) -> BrowserType {
         BrowserType::Firefox
     }

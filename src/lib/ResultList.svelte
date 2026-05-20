@@ -6,10 +6,14 @@
     results,
     selectedIndex,
     onSelect,
+    onClose,
+    onForceNew,
   }: {
     results: SearchResult[];
     selectedIndex: number;
     onSelect: (item: SearchResult, forceNew: boolean) => void;
+    onClose?: (item: SearchResult) => void;
+    onForceNew?: (item: SearchResult) => void;
   } = $props();
 
   let listEl: HTMLUListElement;
@@ -18,7 +22,6 @@
     const idx = selectedIndex;
     if (!listEl || idx < 0 || idx >= listEl.children.length) return;
 
-    // Wait for Svelte to commit the DOM update before scrolling
     requestAnimationFrame(() => {
       const item = listEl.children[idx] as HTMLElement;
       const list = listEl;
@@ -41,6 +44,8 @@
       {item}
       selected={i === selectedIndex}
       onSelect={(forceNew) => onSelect(item, forceNew)}
+      {onClose}
+      {onForceNew}
     />
   {/each}
 </ul>

@@ -148,6 +148,7 @@ pub fn run() {
             commands::browser_commands::get_open_tabs,
             commands::browser_commands::switch_or_open_tab,
             commands::browser_commands::open_new_tab,
+            commands::browser_commands::close_tab,
             commands::bookmark_commands::import_bookmarks,
             commands::bookmark_commands::analyze_history,
             commands::settings_commands::get_setting,

@@ -1,4 +1,4 @@
-use crate::browsers::{self, BrowserType, OpenTab};
+use crate::browsers::{self, Browser, BrowserType, OpenTab};
 use crate::db::queries;
 use crate::state::AppState;
 use std::sync::Mutex;
@@ -98,4 +98,27 @@ pub fn open_new_tab(
 
     let browser = browsers::create_browser(&browser_type)?;
     browser.open_new_tab(&url)
+}
+
+#[tauri::command]
+pub fn close_tab(
+    url: String,
+    state: State<'_, Mutex<AppState>>,
+) -> Result<(), String> {
+    let app = state.lock().map_err(|e| e.to_string())?;
+    let browser_key = queries::get_setting(&app.db, "active_browser")
+        .ok()
+        .flatten()
+        .unwrap_or_else(|| "chrome".into());
+    drop(app);
+
+    let browser_type = match browser_key.as_str() {
+        "edge" => BrowserType::Edge,
+        "firefox" => BrowserType::Firefox,
+        _ => BrowserType::Chrome,
+    };
+
+    let browser = browsers::create_browser(&browser_type)?;
+    let tab = OpenTab { url, title: String::new(), window_id: 1, tab_index: 1 };
+    browser.close_tab(&tab)
 }
