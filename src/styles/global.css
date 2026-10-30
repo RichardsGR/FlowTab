@@ -11,7 +11,7 @@
   --bg-primary: rgba(30, 30, 32, 0.92);
   --bg-secondary: rgba(44, 44, 46, 0.8);
   --bg-hover: rgba(60, 60, 64, 0.8);
-  --bg-selected: rgba(10, 132, 255, 0.35);
+  --bg-selected: rgba(10, 132, 255, 0.18);
   --text-primary: rgba(255, 255, 255, 0.92);
   --text-secondary: rgba(255, 255, 255, 0.55);
   --text-tertiary: rgba(255, 255, 255, 0.38);
@@ -31,7 +31,7 @@
   --bg-primary: rgba(255, 255, 255, 0.72);
   --bg-secondary: rgba(255, 255, 255, 0.55);
   --bg-hover: rgba(0, 0, 0, 0.04);
-  --bg-selected: rgba(10, 132, 255, 0.15);
+  --bg-selected: rgba(10, 132, 255, 0.10);
   --text-primary: rgba(0, 0, 0, 0.88);
   --text-secondary: rgba(0, 0, 0, 0.55);
   --text-tertiary: rgba(0, 0, 0, 0.35);

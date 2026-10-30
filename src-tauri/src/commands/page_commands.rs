@@ -2,10 +2,13 @@ use crate::browsers::{self, BrowserType, OpenTab};
 use crate::db::models::PageEntry;
 use crate::db::queries;
 use crate::search::index::SearchIndex;
-use crate::state::AppState;
+use crate::state::{AppState, TabCache};
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
+use std::time::{Duration, Instant};
 use tauri::State;
+
+const TAB_CACHE_TTL: Duration = Duration::from_secs(10);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SearchResult {
@@ -16,21 +19,45 @@ pub struct SearchResult {
     pub source: String,
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn search_pages(
     query: String,
     state: State<'_, Mutex<AppState>>,
 ) -> Result<Vec<SearchResult>, String> {
-    let app = state.lock().map_err(|e| e.to_string())?;
-    let entries = queries::get_all_pages(&app.db).map_err(|e| e.to_string())?;
-    let browser_key = queries::get_setting(&app.db, "active_browser")
-        .ok()
-        .flatten()
-        .unwrap_or_else(|| "chrome".into());
-    drop(app);
+    let (entries, browser_key, cached_tabs) = {
+        let app = state.lock().map_err(|e| e.to_string())?;
+        let entries = queries::get_all_pages(&app.db).map_err(|e| e.to_string())?;
+        let browser_key = queries::get_setting(&app.db, "active_browser")
+            .ok()
+            .flatten()
+            .unwrap_or_else(|| "chrome".into());
+        let cached_tabs = app
+            .tab_cache
+            .as_ref()
+            .filter(|cache| {
+                cache.browser_key == browser_key && cache.fetched_at.elapsed() < TAB_CACHE_TTL
+            })
+            .map(|cache| cache.tabs.clone());
+        (entries, browser_key, cached_tabs)
+    };
 
-    // Try to get open tabs (non-fatal if it fails)
-    let open_tabs: Vec<OpenTab> = get_open_tabs_silent(&browser_key).unwrap_or_default();
+    // Reuse the prefetched tab list when fresh; otherwise fetch once and cache it.
+    let open_tabs: Vec<OpenTab> = match cached_tabs {
+        Some(tabs) => tabs,
+        None => match get_open_tabs_silent(&browser_key) {
+            Some(tabs) => {
+                if let Ok(mut app) = state.lock() {
+                    app.tab_cache = Some(TabCache {
+                        browser_key: browser_key.clone(),
+                        tabs: tabs.clone(),
+                        fetched_at: Instant::now(),
+                    });
+                }
+                tabs
+            }
+            None => Vec::new(),
+        },
+    };
 
     let mut index = SearchIndex::new();
     let scored = index.search(&query, &entries);
@@ -113,6 +140,13 @@ pub fn add_page(
     state: State<'_, Mutex<AppState>>,
 ) -> Result<PageEntry, String> {
     let app = state.lock().map_err(|e| e.to_string())?;
+
+    if let Some(existing) =
+        queries::find_page_by_normalized_url(&app.db, &input.url).map_err(|e| e.to_string())?
+    {
+        return Ok(existing);
+    }
+
     let (pinyin_full, pinyin_initials) = SearchIndex::compute_pinyin(&input.name);
     let desc = input.description.unwrap_or_default();
 
@@ -138,6 +172,15 @@ pub fn update_page(
     state: State<'_, Mutex<AppState>>,
 ) -> Result<PageEntry, String> {
     let app = state.lock().map_err(|e| e.to_string())?;
+
+    if let Some(existing) =
+        queries::find_page_by_normalized_url(&app.db, &input.url).map_err(|e| e.to_string())?
+    {
+        if existing.id != id {
+            return Err("A page with this URL already exists".into());
+        }
+    }
+
     let (pinyin_full, pinyin_initials) = SearchIndex::compute_pinyin(&input.name);
     let desc = input.description.unwrap_or_default();
 
@@ -172,6 +215,28 @@ pub fn list_pages(
 ) -> Result<Vec<PageEntry>, String> {
     let app = state.lock().map_err(|e| e.to_string())?;
     queries::get_all_pages(&app.db).map_err(|e| e.to_string())
+}
+
+#[tauri::command(async)]
+pub fn prefetch_open_tabs(state: State<'_, Mutex<AppState>>) -> Result<(), String> {
+    let browser_key = {
+        let app = state.lock().map_err(|e| e.to_string())?;
+        queries::get_setting(&app.db, "active_browser")
+            .ok()
+            .flatten()
+            .unwrap_or_else(|| "chrome".into())
+    };
+
+    let tabs = get_open_tabs_silent(&browser_key)
+        .ok_or_else(|| "Failed to read open tabs".to_string())?;
+
+    let mut app = state.lock().map_err(|e| e.to_string())?;
+    app.tab_cache = Some(TabCache {
+        browser_key,
+        tabs,
+        fetched_at: Instant::now(),
+    });
+    Ok(())
 }
 
 // --- helpers ---

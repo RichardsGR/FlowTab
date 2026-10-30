@@ -5,6 +5,10 @@ export async function searchPages(query: string): Promise<SearchResult[]> {
   return invoke("search_pages", { query });
 }
 
+export async function prefetchOpenTabs(): Promise<void> {
+  return invoke("prefetch_open_tabs");
+}
+
 export async function addPage(name: string, url: string, description?: string): Promise<PageEntry> {
   return invoke("add_page", { input: { name, url, description } });
 }

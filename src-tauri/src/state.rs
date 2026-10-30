@@ -1,9 +1,18 @@
+use crate::browsers::OpenTab;
 use rusqlite::Connection;
 use std::path::PathBuf;
+use std::time::Instant;
+
+pub struct TabCache {
+    pub browser_key: String,
+    pub tabs: Vec<OpenTab>,
+    pub fetched_at: Instant,
+}
 
 pub struct AppState {
     pub db: Connection,
     pub data_dir: PathBuf,
+    pub tab_cache: Option<TabCache>,
 }
 
 impl AppState {
@@ -14,7 +23,7 @@ impl AppState {
         let db_path = data_dir.join("flowtab.db");
         let db = crate::db::init::initialize_database(&db_path)?;
 
-        Ok(Self { db, data_dir })
+        Ok(Self { db, data_dir, tab_cache: None })
     }
 }
 

@@ -15,6 +15,15 @@ use tauri::Runtime;
 use tauri::tray::{TrayIconBuilder, MouseButton, MouseButtonState, TrayIconEvent};
 use tauri::menu::{Menu, MenuBuilder, MenuItemBuilder};
 
+pub(crate) fn show_search_window(app: &tauri::AppHandle) {
+    if let Some(window) = app.get_webview_window("search") {
+        let _ = window.show();
+        let _ = window.center();
+        let _ = window.set_focus();
+        let _ = app.emit("search-shown", ());
+    }
+}
+
 pub fn run() {
     let app_state = match AppState::new() {
         Ok(state) => state,
@@ -76,34 +85,18 @@ pub fn run() {
                     let id = event.id().as_ref();
                     match id {
                         "show_search" => {
-                            if let Some(w) = app.get_webview_window("search") {
-                                let _ = w.show();
-                                let _ = w.center();
-                                let _ = w.set_focus();
-                            }
+                            show_search_window(app);
                         }
                         "manage_pages" => {
-                            if let Some(w) = app.get_webview_window("search") {
-                                let _ = w.show();
-                                let _ = w.center();
-                                let _ = w.set_focus();
-                            }
+                            show_search_window(app);
                             let _ = app.emit("navigate", "manager");
                         }
                         "import" => {
-                            if let Some(w) = app.get_webview_window("search") {
-                                let _ = w.show();
-                                let _ = w.center();
-                                let _ = w.set_focus();
-                            }
+                            show_search_window(app);
                             let _ = app.emit("navigate", "import");
                         }
                         "settings" => {
-                            if let Some(w) = app.get_webview_window("search") {
-                                let _ = w.show();
-                                let _ = w.center();
-                                let _ = w.set_focus();
-                            }
+                            show_search_window(app);
                             let _ = app.emit("navigate", "settings");
                         }
                         "quit" => {
@@ -124,9 +117,7 @@ pub fn run() {
                             if w.is_visible().unwrap_or(false) {
                                 let _ = w.hide();
                             } else {
-                                let _ = w.show();
-                                let _ = w.center();
-                                let _ = w.set_focus();
+                                show_search_window(app);
                             }
                         }
                     }
@@ -137,6 +128,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             commands::page_commands::search_pages,
+            commands::page_commands::prefetch_open_tabs,
             commands::page_commands::add_page,
             commands::page_commands::update_page,
             commands::page_commands::delete_page,

@@ -42,7 +42,7 @@
   });
 </script>
 
-<ul class="result-list" bind:this={listEl}>
+<ul class="result-list" role="listbox" bind:this={listEl}>
   {#each results as item, i}
     <ResultItem
       {item}

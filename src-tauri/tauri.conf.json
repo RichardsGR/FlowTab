@@ -14,8 +14,8 @@
       {
         "title": "FlowTab",
         "label": "search",
-        "width": 560,
-        "height": 360,
+        "width": 620,
+        "height": 420,
         "center": true,
         "decorations": false,
         "transparent": true,

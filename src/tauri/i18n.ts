@@ -76,6 +76,12 @@ const en = {
   tray_import: "Import Bookmarks",
   tray_settings: "Settings",
   quit: "Quit",
+  section_general: "General",
+  section_history: "History",
+  hint_navigate: "Navigate",
+  hint_open: "Open",
+  hint_duplicate: "Duplicate",
+  hint_close: "Close",
 };
 
 export type TranslationKey = keyof typeof en;
@@ -134,6 +140,12 @@ const zhCN: Record<TranslationKey, string> = {
   tray_import: "导入书签",
   tray_settings: "设置",
   quit: "退出",
+  section_general: "通用",
+  section_history: "历史记录",
+  hint_navigate: "导航",
+  hint_open: "打开",
+  hint_duplicate: "复制",
+  hint_close: "关闭",
 };
 
 const zhTW: Record<TranslationKey, string> = {
@@ -190,6 +202,12 @@ const zhTW: Record<TranslationKey, string> = {
   tray_import: "匯入書籤",
   tray_settings: "設定",
   quit: "結束",
+  section_general: "一般",
+  section_history: "歷史記錄",
+  hint_navigate: "導覽",
+  hint_open: "開啟",
+  hint_duplicate: "複製",
+  hint_close: "關閉",
 };
 
 const ja: Record<TranslationKey, string> = {
@@ -246,6 +264,12 @@ const ja: Record<TranslationKey, string> = {
   tray_import: "ブックマークを読み込む",
   tray_settings: "設定",
   quit: "終了",
+  section_general: "一般",
+  section_history: "履歴",
+  hint_navigate: "移動",
+  hint_open: "開く",
+  hint_duplicate: "複製",
+  hint_close: "閉じる",
 };
 
 const ko: Record<TranslationKey, string> = {
@@ -302,6 +326,12 @@ const ko: Record<TranslationKey, string> = {
   tray_import: "북마크 가져오기",
   tray_settings: "설정",
   quit: "종료",
+  section_general: "일반",
+  section_history: "기록",
+  hint_navigate: "이동",
+  hint_open: "열기",
+  hint_duplicate: "복제",
+  hint_close: "닫기",
 };
 
 const es: Record<TranslationKey, string> = {
@@ -358,6 +388,12 @@ const es: Record<TranslationKey, string> = {
   tray_import: "Importar marcadores",
   tray_settings: "Ajustes",
   quit: "Salir",
+  section_general: "General",
+  section_history: "Historial",
+  hint_navigate: "Navegar",
+  hint_open: "Abrir",
+  hint_duplicate: "Duplicar",
+  hint_close: "Cerrar",
 };
 
 const fr: Record<TranslationKey, string> = {
@@ -414,6 +450,12 @@ const fr: Record<TranslationKey, string> = {
   tray_import: "Importer les favoris",
   tray_settings: "Réglages",
   quit: "Quitter",
+  section_general: "Général",
+  section_history: "Historique",
+  hint_navigate: "Naviguer",
+  hint_open: "Ouvrir",
+  hint_duplicate: "Dupliquer",
+  hint_close: "Fermer",
 };
 
 const de: Record<TranslationKey, string> = {
@@ -470,6 +512,12 @@ const de: Record<TranslationKey, string> = {
   tray_import: "Lesezeichen importieren",
   tray_settings: "Einstellungen",
   quit: "Beenden",
+  section_general: "Allgemein",
+  section_history: "Verlauf",
+  hint_navigate: "Navigieren",
+  hint_open: "Öffnen",
+  hint_duplicate: "Duplizieren",
+  hint_close: "Schließen",
 };
 
 const pt: Record<TranslationKey, string> = {
@@ -525,6 +573,12 @@ const pt: Record<TranslationKey, string> = {
   tray_import: "Importar favoritos",
   tray_settings: "Configurações",
   quit: "Sair",
+  section_general: "Geral",
+  section_history: "Histórico",
+  hint_navigate: "Navegar",
+  hint_open: "Abrir",
+  hint_duplicate: "Duplicar",
+  hint_close: "Fechar",
 };
 
 const ru: Record<TranslationKey, string> = {
@@ -581,6 +635,12 @@ const ru: Record<TranslationKey, string> = {
   tray_import: "Импортировать закладки",
   tray_settings: "Настройки",
   quit: "Выход",
+  section_general: "Общие",
+  section_history: "История",
+  hint_navigate: "Навигация",
+  hint_open: "Открыть",
+  hint_duplicate: "Дублировать",
+  hint_close: "Закрыть",
 };
 
 const dict: Record<Lang, Record<TranslationKey, string>> = {

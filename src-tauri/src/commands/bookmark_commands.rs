@@ -18,10 +18,10 @@ fn normalize_url_for_dedup(url: &str) -> String {
         s = stripped.to_string();
     }
     s = s.trim_end_matches('/').to_string();
-    if let Some(pos) = s.find('#') {
+    if let Some(pos) = s.find(|c| c == '?' || c == '#') {
         s = s[..pos].to_string();
     }
-    s
+    s.trim_end_matches('/').to_string()
 }
 
 /// Deduplicate history items by normalized URL, keeping highest visit_count per URL

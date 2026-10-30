@@ -28,8 +28,11 @@ pub fn set_setting(
     state: State<'_, Mutex<AppState>>,
 ) -> Result<(), String> {
     {
-        let app_state = state.lock().map_err(|e| e.to_string())?;
+        let mut app_state = state.lock().map_err(|e| e.to_string())?;
         queries::set_setting(&app_state.db, &key, &value).map_err(|e| e.to_string())?;
+        if key == "active_browser" {
+            app_state.tab_cache = None;
+        }
     }
 
     if key == "language" {

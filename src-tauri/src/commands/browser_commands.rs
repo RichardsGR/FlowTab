@@ -4,7 +4,7 @@ use crate::state::AppState;
 use std::sync::Mutex;
 use tauri::State;
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn get_open_tabs(
     browser: Option<String>,
     state: State<'_, Mutex<AppState>>,
@@ -24,7 +24,7 @@ pub fn get_open_tabs(
     browser.get_open_tabs()
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn switch_or_open_tab(
     url: String,
     force_new: Option<bool>,
@@ -61,16 +61,18 @@ pub fn switch_or_open_tab(
     match matching_tab {
         Some(tab) => {
             browser.activate_tab(tab)?;
+            clear_tab_cache(&state);
             Ok("switched".into())
         }
         None => {
             browser.open_new_tab(&url)?;
+            clear_tab_cache(&state);
             Ok("new_tab".into())
         }
     }
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn open_new_tab(
     url: String,
     state: State<'_, Mutex<AppState>>,
@@ -85,10 +87,12 @@ pub fn open_new_tab(
     let browser_type = BrowserType::from_key(&browser_key);
 
     let browser = browsers::create_browser(&browser_type)?;
-    browser.open_new_tab(&url)
+    browser.open_new_tab(&url)?;
+    clear_tab_cache(&state);
+    Ok(())
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn close_tab(
     url: String,
     state: State<'_, Mutex<AppState>>,
@@ -104,5 +108,13 @@ pub fn close_tab(
 
     let browser = browsers::create_browser(&browser_type)?;
     let tab = OpenTab { url, title: String::new(), window_id: 1, tab_index: 1 };
-    browser.close_tab(&tab)
+    browser.close_tab(&tab)?;
+    clear_tab_cache(&state);
+    Ok(())
+}
+
+fn clear_tab_cache(state: &State<'_, Mutex<AppState>>) {
+    if let Ok(mut app) = state.lock() {
+        app.tab_cache = None;
+    }
 }

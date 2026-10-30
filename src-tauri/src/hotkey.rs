@@ -16,9 +16,7 @@ pub fn register_default_hotkey(app: &AppHandle) -> Result<(), Box<dyn std::error
             if visible {
                 let _ = window.hide();
             } else {
-                let _ = window.show();
-                let _ = window.center();
-                let _ = window.set_focus();
+                crate::show_search_window(&handle);
             }
         }
     })?;
