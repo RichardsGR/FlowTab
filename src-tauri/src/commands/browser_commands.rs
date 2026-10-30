@@ -1,4 +1,4 @@
-use crate::browsers::{self, Browser, BrowserType, OpenTab};
+use crate::browsers::{self, BrowserType, OpenTab};
 use crate::db::queries;
 use crate::state::AppState;
 use std::sync::Mutex;
@@ -18,11 +18,7 @@ pub fn get_open_tabs(
     });
     drop(app);
 
-    let browser_type = match browser_key.as_str() {
-        "edge" => BrowserType::Edge,
-        "firefox" => BrowserType::Firefox,
-        _ => BrowserType::Chrome,
-    };
+    let browser_type = BrowserType::from_key(&browser_key);
 
     let browser = browsers::create_browser(&browser_type)?;
     browser.get_open_tabs()
@@ -43,11 +39,7 @@ pub fn switch_or_open_tab(
         .unwrap_or_else(|| "chrome".into());
     drop(app);
 
-    let browser_type = match browser_key.as_str() {
-        "edge" => BrowserType::Edge,
-        "firefox" => BrowserType::Firefox,
-        _ => BrowserType::Chrome,
-    };
+    let browser_type = BrowserType::from_key(&browser_key);
 
     let browser = browsers::create_browser(&browser_type)?;
 
@@ -90,11 +82,7 @@ pub fn open_new_tab(
         .unwrap_or_else(|| "chrome".into());
     drop(app);
 
-    let browser_type = match browser_key.as_str() {
-        "edge" => BrowserType::Edge,
-        "firefox" => BrowserType::Firefox,
-        _ => BrowserType::Chrome,
-    };
+    let browser_type = BrowserType::from_key(&browser_key);
 
     let browser = browsers::create_browser(&browser_type)?;
     browser.open_new_tab(&url)
@@ -112,11 +100,7 @@ pub fn close_tab(
         .unwrap_or_else(|| "chrome".into());
     drop(app);
 
-    let browser_type = match browser_key.as_str() {
-        "edge" => BrowserType::Edge,
-        "firefox" => BrowserType::Firefox,
-        _ => BrowserType::Chrome,
-    };
+    let browser_type = BrowserType::from_key(&browser_key);
 
     let browser = browsers::create_browser(&browser_type)?;
     let tab = OpenTab { url, title: String::new(), window_id: 1, tab_index: 1 };

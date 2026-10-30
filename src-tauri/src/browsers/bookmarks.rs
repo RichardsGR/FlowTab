@@ -7,7 +7,7 @@ pub struct BookmarkItem {
     pub url: String,
 }
 
-/// Parse Chrome/Edge bookmarks JSON file
+/// Parse Chrome bookmarks JSON file
 /// Chrome stores bookmarks in a nested JSON structure with "roots" -> folders -> children
 pub fn parse_chrome_bookmarks(path: &str) -> Result<Vec<BookmarkItem>, String> {
     let content = std::fs::read_to_string(path)
@@ -71,15 +71,6 @@ pub fn get_bookmark_paths() -> Vec<(super::BrowserType, PathBuf)> {
     ));
     if chrome_path.exists() {
         paths.push((super::BrowserType::Chrome, chrome_path));
-    }
-
-    // Edge
-    let edge_path = PathBuf::from(format!(
-        "{}/Library/Application Support/Microsoft Edge/Default/Bookmarks",
-        home
-    ));
-    if edge_path.exists() {
-        paths.push((super::BrowserType::Edge, edge_path));
     }
 
     // Firefox

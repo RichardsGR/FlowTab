@@ -2,18 +2,22 @@
   import type { SearchResult } from "../tauri/types";
   import ResultItem from "./ResultItem.svelte";
 
+  import type { Lang } from "../tauri/i18n";
+
   let {
     results,
     selectedIndex,
     onSelect,
     onClose,
     onForceNew,
+    lang,
   }: {
     results: SearchResult[];
     selectedIndex: number;
     onSelect: (item: SearchResult, forceNew: boolean) => void;
     onClose?: (item: SearchResult) => void;
     onForceNew?: (item: SearchResult) => void;
+    lang: Lang;
   } = $props();
 
   let listEl: HTMLUListElement;
@@ -42,6 +46,7 @@
   {#each results as item, i}
     <ResultItem
       {item}
+      {lang}
       selected={i === selectedIndex}
       onSelect={(forceNew) => onSelect(item, forceNew)}
       {onClose}

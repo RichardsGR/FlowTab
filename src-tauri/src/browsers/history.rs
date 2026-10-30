@@ -22,15 +22,6 @@ pub fn get_history_paths() -> Vec<PathBuf> {
         paths.push(chrome);
     }
 
-    // Edge
-    let edge = PathBuf::from(format!(
-        "{}/Library/Application Support/Microsoft Edge/Default/History",
-        home
-    ));
-    if edge.exists() {
-        paths.push(edge);
-    }
-
     // Arc
     let arc = PathBuf::from(format!(
         "{}/Library/Application Support/Arc/User Data/Default/History",

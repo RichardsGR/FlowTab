@@ -46,15 +46,15 @@ pub fn run() {
             }
 
             // Build tray menu
-            let show_search = MenuItemBuilder::with_id("show_search", "显示搜索框")
+            let show_search = MenuItemBuilder::with_id("show_search", "Show Search")
                 .build(&handle)?;
-            let manage_pages = MenuItemBuilder::with_id("manage_pages", "管理页面索引")
+            let manage_pages = MenuItemBuilder::with_id("manage_pages", "Manage Pages")
                 .build(&handle)?;
-            let import = MenuItemBuilder::with_id("import", "导入书签")
+            let import = MenuItemBuilder::with_id("import", "Import Bookmarks")
                 .build(&handle)?;
-            let settings = MenuItemBuilder::with_id("settings", "设置")
+            let settings = MenuItemBuilder::with_id("settings", "Settings")
                 .build(&handle)?;
-            let quit = MenuItemBuilder::with_id("quit", "退出")
+            let quit = MenuItemBuilder::with_id("quit", "Quit")
                 .build(&handle)?;
 
             let menu = MenuBuilder::new(&handle)

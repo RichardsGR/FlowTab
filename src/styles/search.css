@@ -418,3 +418,31 @@
   color: var(--accent);
   border-bottom-color: var(--accent);
 }
+
+/* Automation permission banner */
+.automation-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 8px 12px 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 159, 10, 0.45);
+  border-radius: 8px;
+  background: rgba(255, 159, 10, 0.12);
+  color: var(--text-primary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.automation-banner span {
+  flex: 1;
+}
+
+.automation-banner-close {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0 2px;
+  font-size: 12px;
+}

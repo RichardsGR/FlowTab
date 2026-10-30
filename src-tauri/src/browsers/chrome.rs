@@ -1,5 +1,4 @@
-use super::{Browser, BrowserType, OpenTab};
-use std::process::Command;
+use super::{macos, parse_tabs_output, Browser, BrowserType, OpenTab};
 
 pub struct ChromeBrowser;
 
@@ -18,13 +17,7 @@ pub fn is_installed() -> bool {
 }
 
 fn is_running() -> bool {
-    // Use pgrep to check if Chrome is running (no AppleScript permissions needed)
-    Command::new("pgrep")
-        .arg("-q")
-        .arg("Google Chrome")
-        .status()
-        .map(|s| s.success())
-        .unwrap_or(false)
+    macos::is_process_running("Google Chrome")
 }
 
 impl Browser for ChromeBrowser {
@@ -36,27 +29,24 @@ impl Browser for ChromeBrowser {
         let script = r#"
             tell application "Google Chrome"
                 set output to ""
-                set allWindows to every window
-                repeat with w in allWindows
-                    set allTabs to every tab in w
-                    repeat with t in allTabs
-                        set tabURL to URL of t
-                        set tabTitle to title of t
-                        set output to output & tabURL & "|" & tabTitle & "\n"
+                repeat with w in windows
+                    set widx to index of w
+                    repeat with t in tabs of w
+                        set tidx to index of t
+                        set output to output & widx & tab & tidx & tab & (URL of t) & tab & (title of t) & linefeed
                     end repeat
                 end repeat
                 return output
             end tell
         "#;
 
-        let output = run_osascript(script)?;
+        let output = macos::run_osascript(script, BrowserType::Chrome.display_name())?;
         parse_tabs_output(&output)
     }
 
     fn activate_tab(&self, tab: &OpenTab) -> Result<(), String> {
         if !is_running() {
-            // Chrome not running, can't switch to tab, just open the URL
-            return open_via_shell(&tab.url);
+            return macos::open_url("Google Chrome", &tab.url);
         }
 
         let script = format!(
@@ -69,112 +59,48 @@ impl Browser for ChromeBrowser {
             end tell"#,
             tab.window_id, tab.tab_index
         );
-        // If AppleScript fails (e.g., window/tab changed), fall back to opening URL
-        match run_osascript(&script) {
+
+        match macos::run_osascript(&script, BrowserType::Chrome.display_name()) {
             Ok(_) => Ok(()),
-            Err(_) => open_via_shell(&tab.url),
+            Err(e) if e.starts_with("AUTOMATION_DENIED") => Err(e),
+            Err(_) => macos::open_url("Google Chrome", &tab.url),
         }
     }
 
     fn open_new_tab(&self, url: &str) -> Result<(), String> {
-        open_via_shell(url)
+        macos::open_url("Google Chrome", url)
     }
 
     fn close_tab(&self, tab: &OpenTab) -> Result<(), String> {
         if !is_running() {
             return Ok(());
         }
-        // Close tab by URL matching (more reliable than index)
-        let escaped_url = tab.url.replace('"', "\\\"");
+
+        let escaped_url = tab.url.replace('\\', "\\\\").replace('"', "\\\"");
         let script = format!(
             r#"tell application "Google Chrome"
-                repeat with w in every window
-                    set tabIndex to 1
-                    repeat with t in every tab of w
+                repeat with w in windows
+                    repeat with t in tabs of w
                         if URL of t starts with "{}" then
                             close t
                             return "closed"
                         end if
-                        set tabIndex to tabIndex + 1
                     end repeat
                 end repeat
+                return "not_found"
             end tell"#,
             escaped_url
         );
-        match run_osascript(&script) {
-            Ok(r) if r == "closed" => Ok(()),
-            Ok(_) => Err("Tab not found".into()),
-            Err(e) => Err(e),
+
+        let result = macos::run_osascript(&script, BrowserType::Chrome.display_name())?;
+        if result == "closed" {
+            Ok(())
+        } else {
+            Err("Tab not found".into())
         }
     }
 
     fn browser_type(&self) -> BrowserType {
         BrowserType::Chrome
     }
-}
-
-/// Open URL via `open -a "Google Chrome"` — works whether Chrome is running or not
-fn open_via_shell(url: &str) -> Result<(), String> {
-    let url = ensure_protocol(url);
-    let status = Command::new("open")
-        .arg("-a")
-        .arg("Google Chrome")
-        .arg(&url)
-        .status()
-        .map_err(|e| format!("Failed to launch Chrome: {}", e))?;
-
-    if !status.success() {
-        return Err("open command failed".into());
-    }
-    Ok(())
-}
-
-fn ensure_protocol(url: &str) -> String {
-    if url.starts_with("http://") || url.starts_with("https://") {
-        url.to_string()
-    } else {
-        format!("https://{}", url)
-    }
-}
-
-fn run_osascript(script: &str) -> Result<String, String> {
-    let output = Command::new("osascript")
-        .arg("-e")
-        .arg(script)
-        .output()
-        .map_err(|e| format!("Failed to run osascript: {}", e))?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-        return Err(format!("osascript error: {}", stderr));
-    }
-
-    Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
-}
-
-pub(crate) fn parse_tabs_output(output: &str) -> Result<Vec<OpenTab>, String> {
-    let mut tabs = Vec::new();
-    let window_id: usize = 1;
-    let mut last_tab_in_window: usize = 0;
-
-    for line in output.lines() {
-        if line.trim().is_empty() {
-            continue;
-        }
-        let parts: Vec<&str> = line.splitn(2, '|').collect();
-        if parts.len() >= 2 {
-            let url = parts[0].trim().to_string();
-            let title = parts[1].trim().to_string();
-
-            tabs.push(OpenTab {
-                url,
-                title,
-                window_id,
-                tab_index: last_tab_in_window + 1,
-            });
-            last_tab_in_window += 1;
-        }
-    }
-
-    Ok(tabs)
 }

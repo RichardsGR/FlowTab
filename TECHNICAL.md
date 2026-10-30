@@ -41,7 +41,8 @@ FlowTab/
 │       ├── browsers/
 │       │   ├── mod.rs             # Browser trait + BrowserFactory
 │       │   ├── chrome.rs          # Chrome 标签页检测/切换/打开
-│       │   ├── edge.rs            # Edge 支持
+│       │   ├── safari.rs          # Safari 标签页检测/切换/打开
+│       │   ├── macos.rs           # osascript 执行、权限错误映射、open 命令
 │       │   ├── firefox.rs         # Firefox 存根
 │       │   ├── bookmarks.rs       # 书签解析 (JSON)
 │       │   └── history.rs         # 浏览记录读取 (SQLite)
@@ -150,7 +151,7 @@ CREATE TABLE settings (
 
 ```
 invoke("import_bookmarks")
-→ 读取 Chrome/Edge Bookmarks JSON
+→ 读取 Chrome Bookmarks JSON
 → 扁平化嵌套书签树
 → 逐条 insert_page_ignore_dup（URL 标准化去重）
 → 返回导入数量
@@ -160,7 +161,7 @@ invoke("import_bookmarks")
 
 ```
 invoke("analyze_history") / 启动时自动执行
-→ 遍历 Chrome/Edge/Arc/Brave History SQLite
+→ 遍历 Chrome/Arc/Brave History SQLite
 → 读取 visit_count ≥ 5 的 top 50 URL
 → 跨浏览器合并 + URL 标准化去重
 → 逐条 insert_page_ignore_dup
@@ -199,12 +200,23 @@ Chrome 关闭时：
 
 | 操作 | 方法 | 实现 |
 |------|------|------|
-| 检测运行状态 | `pgrep -q "Google Chrome"` | 零权限 |
-| 获取标签页 | AppleScript 遍历窗口/标签 | URL + Title |
-| 切换标签页 | AppleScript set active tab index | window_id + tab_index |
-| 打开新标签页 | `open -a "Google Chrome" <url>` | 自动启动浏览器 |
+| 检测运行状态 | `pgrep -qx <进程名>` | 零权限 |
+| 获取标签页 | AppleScript 遍历窗口/标签 | 窗口索引 + 标签索引 + URL + Title |
+| 切换标签页 | AppleScript 设置 current tab / active tab index | window_id + tab_index |
+| 打开新标签页 | `open -a <浏览器> <url>` | 自动启动浏览器 |
 | 书签读取 | 解析 `Application Support/.../Bookmarks` JSON | serde_json |
 | 历史读取 | 解析 `Application Support/.../History` SQLite | rusqlite |
+
+### 浏览器支持
+
+| 浏览器 | 列标签 | 切换 | 新建 | 关闭 |
+|--------|--------|------|------|------|
+| Chrome | ✅ | ✅ | ✅ | ✅ |
+| Safari | ✅ | ✅ | ✅ | ✅ |
+| Firefox | ❌ | ❌ | ✅ | ❌ |
+
+Safari 与 Chrome 均通过 AppleScript 操作，首次使用需要在
+系统设置 → 隐私与安全性 → 自动化 中允许 FlowTab 控制对应浏览器。
 
 ## 搜索评分策略
 

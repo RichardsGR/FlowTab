@@ -42,7 +42,9 @@ pub fn initialize_database(db_path: &Path) -> Result<Connection> {
         INSERT OR IGNORE INTO settings (key, value) VALUES ('window_opacity', '0.95');
         INSERT OR IGNORE INTO settings (key, value) VALUES ('theme', 'system');
         INSERT OR IGNORE INTO settings (key, value) VALUES ('db_version', '1');
-        INSERT OR IGNORE INTO settings (key, value) VALUES ('auto_analyze', 'false');",
+        INSERT OR IGNORE INTO settings (key, value) VALUES ('auto_analyze', 'false');
+        INSERT OR IGNORE INTO settings (key, value) VALUES ('language', 'en');
+        UPDATE settings SET value = 'chrome' WHERE key = 'active_browser' AND value = 'edge';",
     )?;
 
     Ok(conn)

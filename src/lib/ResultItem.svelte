@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { SearchResult } from "../tauri/types";
+  import { i18n, type Lang } from "../tauri/i18n";
 
   let {
     item,
@@ -7,12 +8,14 @@
     onSelect,
     onClose,
     onForceNew,
+    lang,
   }: {
     item: SearchResult;
     selected: boolean;
     onSelect: (forceNew: boolean) => void;
     onClose?: (item: SearchResult) => void;
     onForceNew?: (item: SearchResult) => void;
+    lang: Lang;
   } = $props();
 
   function getDomain(url: string): string {
@@ -45,19 +48,19 @@
     <div class="result-item-url">{getDomain(item.entry.url)}</div>
   </div>
   {#if item.is_open}
-    <span class="result-item-badge badge-open">已打开</span>
+    <span class="result-item-badge badge-open">{i18n("open")}</span>
     {#if selected}
-      <button class="result-item-action" title="关闭标签页 (Tab+⌫)"
+      <button class="result-item-action" title={i18n("close_tab_title")}
         onclick={(e) => { e.stopPropagation(); onClose?.(item); }}>
         ✕
       </button>
-      <button class="result-item-action primary" title="新建相同标签页 (Tab+⏎)"
+      <button class="result-item-action primary" title={i18n("dup_tab_title")}
         onclick={(e) => { e.stopPropagation(); onForceNew?.(item); }}>
         +
       </button>
     {/if}
   {:else if selected}
-    <span class="result-item-action primary" title="打开 (⏎)">
+    <span class="result-item-action primary" title={i18n("open_title")}>
       ⏎
     </span>
   {/if}

@@ -177,11 +177,7 @@ pub fn list_pages(
 // --- helpers ---
 
 fn get_open_tabs_silent(browser_key: &str) -> Option<Vec<OpenTab>> {
-    let browser_type = match browser_key {
-        "edge" => BrowserType::Edge,
-        "firefox" => BrowserType::Firefox,
-        _ => BrowserType::Chrome,
-    };
+    let browser_type = BrowserType::from_key(browser_key);
     let browser = browsers::create_browser(&browser_type).ok()?;
     browser.get_open_tabs().ok()
 }

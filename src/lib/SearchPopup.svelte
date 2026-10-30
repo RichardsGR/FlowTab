@@ -3,15 +3,17 @@
   import { getCurrentWindow } from "@tauri-apps/api/window";
   import { searchPages, switchOrOpenTab, openNewTab, closeTab, hideSearchWindow } from "../tauri/commands";
   import type { SearchResult } from "../tauri/types";
+  import { i18n, type Lang } from "../tauri/i18n";
   import EmptyState from "./EmptyState.svelte";
   import ResultList from "./ResultList.svelte";
 
-  let { onNavigate }: { onNavigate: (v: string) => void } = $props();
+  let { lang, onNavigate }: { lang: Lang; onNavigate: (v: string) => void } = $props();
 
   let query = $state("");
   let results: SearchResult[] = $state([]);
   let selectedIndex = $state(0);
   let loading = $state(false);
+  let automationError = $state<string | null>(null);
   let blurTimer: ReturnType<typeof setTimeout>;
   let inputEl: HTMLInputElement;
 
@@ -41,17 +43,38 @@
     }
   }
 
+  function handleActionError(e: unknown) {
+    const msg = String(e);
+    if (msg.includes("AUTOMATION_DENIED")) {
+      const browser = msg.split(":")[1]?.trim() || "浏览器";
+      automationError = i18n("automation_denied", { browser });
+    } else {
+      console.error("Browser action failed:", e);
+    }
+  }
+
   async function handleSelect(item: SearchResult, forceNew: boolean = false) {
-    // Hide the popup first so focus transfer to Chrome doesn't interfere
-    hideWindow().catch(() => {});
     try {
       if (forceNew) {
         await openNewTab(item.entry.url);
       } else {
         await switchOrOpenTab(item.entry.url, false);
       }
+      automationError = null;
+      // Hide only after the browser action succeeds, so permission errors stay visible
+      hideWindow().catch(() => {});
     } catch (e) {
-      console.error("Failed to open tab:", e);
+      handleActionError(e);
+    }
+  }
+
+  async function handleClose(item: SearchResult) {
+    try {
+      await closeTab(item.entry.url);
+      automationError = null;
+      doSearch(query);
+    } catch (e) {
+      handleActionError(e);
     }
   }
 
@@ -87,9 +110,7 @@
       if (tabModifier && results.length > 0 && results[selectedIndex]?.is_open) {
         e.preventDefault();
         // Tab+Backspace: close the tab in browser
-        closeTab(results[selectedIndex].entry.url).catch(() => {});
-        // Refresh search to update is_open status
-        doSearch(query);
+        handleClose(results[selectedIndex]);
       }
     } else if (e.key === "Escape") {
       e.preventDefault();
@@ -133,7 +154,7 @@
       <input
         type="text"
         class="search-input"
-        placeholder="搜索页面名称、URL 或拼音..."
+        placeholder={i18n("search_placeholder")}
         value={query}
         oninput={(e) => doSearch((e.target as HTMLInputElement).value)}
         spellcheck="false"
@@ -143,23 +164,32 @@
       />
     </div>
 
+    {#if automationError}
+      <div class="automation-banner" role="alert">
+        <span>{automationError}</span>
+        <button
+          class="automation-banner-close"
+          onclick={() => (automationError = null)}
+          aria-label="Dismiss"
+        >✕</button>
+      </div>
+    {/if}
+
     {#if loading}
-      <div class="empty-state">搜索中...</div>
+      <div class="empty-state">{i18n("searching")}</div>
     {:else if query.length === 0}
-      <EmptyState message="输入关键词搜索..." icon="🔍" />
+      <EmptyState message={i18n("type_to_search")} icon="🔍" />
     {:else if results.length === 0}
-      <EmptyState message="没有匹配的结果" icon="📭">
-        <span class="empty-state-action" onclick={() => onNavigate("manager")}>添加新页面</span>
+      <EmptyState message={i18n("no_results")} icon="📭">
+        <span class="empty-state-action" onclick={() => onNavigate("manager")}>{i18n("add_page")}</span>
       </EmptyState>
     {:else}
       <ResultList
         {results}
         {selectedIndex}
+        {lang}
         onSelect={handleSelect}
-        onClose={(item) => {
-          closeTab(item.entry.url).catch(() => {});
-          doSearch(query);
-        }}
+        onClose={handleClose}
         onForceNew={(item) => handleSelect(item, true)}
       />
     {/if}
