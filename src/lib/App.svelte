@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { listen } from "@tauri-apps/api/event";
   import { getSetting, analyzeHistory } from "../tauri/commands";
-  import { getLang, setLang, type Lang } from "../tauri/i18n";
+  import { normalizeLang, type Lang } from "../tauri/i18n";
   import "../styles/global.css";
   import "../styles/search.css";
   import SearchPopup from "./SearchPopup.svelte";
@@ -11,7 +11,7 @@
   import BookmarkImporter from "./BookmarkImporter.svelte";
 
   let view: "search" | "manager" | "settings" | "import" = $state("search");
-  let lang: Lang = $state(getLang());
+  let lang: Lang = $state("en");
 
   function applyTheme(t: string) {
     const html = document.documentElement;
@@ -24,7 +24,6 @@
   }
 
   function onLangChange(l: Lang) {
-    setLang(l);
     lang = l;
   }
 
@@ -33,11 +32,7 @@
       const saved = await getSetting("theme");
       applyTheme(saved ?? "system");
 
-      const savedLang = await getSetting("language");
-      if (savedLang === "zh" || savedLang === "en") {
-        setLang(savedLang);
-        lang = savedLang;
-      }
+      lang = normalizeLang(await getSetting("language"));
 
       const autoAnalyze = await getSetting("auto_analyze");
       if (autoAnalyze === "true") {

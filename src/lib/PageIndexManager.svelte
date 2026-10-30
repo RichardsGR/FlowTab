@@ -84,22 +84,22 @@
 
 <div class="page-manager">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-    <button class="btn" onclick={onBack}>{i18n("back")}</button>
-    <h2 style="margin-bottom:0;">{i18n("page_index")}</h2>
+    <button class="btn" onclick={onBack}>{i18n(lang, "back")}</button>
+    <h2 style="margin-bottom:0;">{i18n(lang, "page_index")}</h2>
     <div style="flex:1"></div>
     <button class="btn btn-danger" onclick={handleClean} disabled={cleaning}>
-      {cleaning ? i18n("cleaning") : i18n("clean_dupes")}
+      {cleaning ? i18n(lang, "cleaning") : i18n(lang, "clean_dupes")}
     </button>
     {#if cleanedCount !== null}
-      <span style="font-size:13px;color:var(--text-secondary);">{i18n("removed_n", { n: cleanedCount })}</span>
+      <span style="font-size:13px;color:var(--text-secondary);">{i18n(lang, "removed_n", { n: cleanedCount })}</span>
     {/if}
   </div>
 
   <div class="page-form">
     <div class="page-form-row">
-      <input type="text" placeholder={i18n("page_name_ph")} bind:value={newName} />
-      <input type="text" placeholder={i18n("url_ph")} bind:value={newUrl} />
-      <button class="btn btn-primary" onclick={handleAdd}>{i18n("add")}</button>
+      <input type="text" placeholder={i18n(lang, "page_name_ph")} bind:value={newName} />
+      <input type="text" placeholder={i18n(lang, "url_ph")} bind:value={newUrl} />
+      <button class="btn btn-primary" onclick={handleAdd}>{i18n(lang, "add")}</button>
     </div>
   </div>
 
@@ -109,14 +109,14 @@
         {#if editingId === page.id}
           <input type="text" bind:value={editName} style="flex:1" />
           <input type="text" bind:value={editUrl} style="flex:2" />
-          <button class="btn btn-primary" onclick={() => handleUpdate(page.id)}>{i18n("save")}</button>
-          <button class="btn" onclick={() => (editingId = 0)}>{i18n("cancel")}</button>
+          <button class="btn btn-primary" onclick={() => handleUpdate(page.id)}>{i18n(lang, "save")}</button>
+          <button class="btn" onclick={() => (editingId = 0)}>{i18n(lang, "cancel")}</button>
         {:else}
           <span class="page-list-item-name">{page.name}</span>
           <span class="page-list-item-url">{page.url}</span>
           <div class="page-list-item-actions">
-            <button class="btn" onclick={() => startEdit(page)}>{i18n("edit")}</button>
-            <button class="btn btn-danger" onclick={() => handleDelete(page.id)}>{i18n("del")}</button>
+            <button class="btn" onclick={() => startEdit(page)}>{i18n(lang, "edit")}</button>
+            <button class="btn btn-danger" onclick={() => handleDelete(page.id)}>{i18n(lang, "del")}</button>
           </div>
         {/if}
       </li>

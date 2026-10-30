@@ -4,13 +4,16 @@ mod search;
 mod browsers;
 mod hotkey;
 mod state;
+mod tray_i18n;
 
 use state::AppState;
+use crate::db::queries;
 use std::sync::Mutex;
 use tauri::Emitter;
 use tauri::Manager;
+use tauri::Runtime;
 use tauri::tray::{TrayIconBuilder, MouseButton, MouseButtonState, TrayIconEvent};
-use tauri::menu::{MenuBuilder, MenuItemBuilder};
+use tauri::menu::{Menu, MenuBuilder, MenuItemBuilder};
 
 pub fn run() {
     let app_state = match AppState::new() {
@@ -45,32 +48,26 @@ pub fn run() {
                 let _ = window.set_effects(Some(effects));
             }
 
-            // Build tray menu
-            let show_search = MenuItemBuilder::with_id("show_search", "Show Search")
-                .build(&handle)?;
-            let manage_pages = MenuItemBuilder::with_id("manage_pages", "Manage Pages")
-                .build(&handle)?;
-            let import = MenuItemBuilder::with_id("import", "Import Bookmarks")
-                .build(&handle)?;
-            let settings = MenuItemBuilder::with_id("settings", "Settings")
-                .build(&handle)?;
-            let quit = MenuItemBuilder::with_id("quit", "Quit")
-                .build(&handle)?;
+            // Build tray menu in the saved language
+            let lang = {
+                let state = app.state::<Mutex<AppState>>();
+                let stored = match state.lock() {
+                    Ok(guard) => queries::get_setting(&guard.db, "language")
+                        .ok()
+                        .flatten()
+                        .unwrap_or_else(|| "en".into()),
+                    Err(_) => "en".into(),
+                };
+                stored
+            };
 
-            let menu = MenuBuilder::new(&handle)
-                .item(&show_search)
-                .item(&manage_pages)
-                .item(&import)
-                .item(&settings)
-                .separator()
-                .item(&quit)
-                .build()?;
+            let menu = build_tray_menu(&handle, &lang)?;
 
             let tray_icon = tauri::image::Image::from_bytes(
                 include_bytes!("../icons/tray-icon.png")
             ).expect("Failed to load tray icon");
 
-            let _tray = TrayIconBuilder::new()
+            let _tray = TrayIconBuilder::with_id("main")
                 .icon(tray_icon)
                 .icon_as_template(false)
                 .menu(&menu)
@@ -157,6 +154,32 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running FlowTab");
+}
+
+pub(crate) fn build_tray_menu<R: Runtime>(
+    app: &tauri::AppHandle<R>,
+    lang: &str,
+) -> tauri::Result<Menu<R>> {
+    let labels = tray_i18n::labels(lang);
+
+    let show_search =
+        MenuItemBuilder::with_id("show_search", labels.show_search).build(app)?;
+    let manage_pages =
+        MenuItemBuilder::with_id("manage_pages", labels.manage_pages).build(app)?;
+    let import =
+        MenuItemBuilder::with_id("import", labels.import_bookmarks).build(app)?;
+    let settings =
+        MenuItemBuilder::with_id("settings", labels.settings).build(app)?;
+    let quit = MenuItemBuilder::with_id("quit", labels.quit).build(app)?;
+
+    MenuBuilder::new(app)
+        .item(&show_search)
+        .item(&manage_pages)
+        .item(&import)
+        .item(&settings)
+        .separator()
+        .item(&quit)
+        .build()
 }
 
 fn show_error_dialog(msg: &str) {

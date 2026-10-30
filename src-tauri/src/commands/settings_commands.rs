@@ -22,10 +22,22 @@ pub fn get_setting(
 
 #[tauri::command]
 pub fn set_setting(
+    app: tauri::AppHandle,
     key: String,
     value: String,
     state: State<'_, Mutex<AppState>>,
 ) -> Result<(), String> {
-    let app = state.lock().map_err(|e| e.to_string())?;
-    queries::set_setting(&app.db, &key, &value).map_err(|e| e.to_string())
+    {
+        let app_state = state.lock().map_err(|e| e.to_string())?;
+        queries::set_setting(&app_state.db, &key, &value).map_err(|e| e.to_string())?;
+    }
+
+    if key == "language" {
+        if let Some(tray) = app.tray_by_id("main") {
+            let menu = crate::build_tray_menu(&app, &value).map_err(|e| e.to_string())?;
+            tray.set_menu(Some(menu)).map_err(|e| e.to_string())?;
+        }
+    }
+
+    Ok(())
 }

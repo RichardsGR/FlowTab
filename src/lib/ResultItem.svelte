@@ -48,19 +48,19 @@
     <div class="result-item-url">{getDomain(item.entry.url)}</div>
   </div>
   {#if item.is_open}
-    <span class="result-item-badge badge-open">{i18n("open")}</span>
+    <span class="result-item-badge badge-open">{i18n(lang, "open")}</span>
     {#if selected}
-      <button class="result-item-action" title={i18n("close_tab_title")}
+      <button class="result-item-action" title={i18n(lang, "close_tab_title")}
         onclick={(e) => { e.stopPropagation(); onClose?.(item); }}>
         ✕
       </button>
-      <button class="result-item-action primary" title={i18n("dup_tab_title")}
+      <button class="result-item-action primary" title={i18n(lang, "dup_tab_title")}
         onclick={(e) => { e.stopPropagation(); onForceNew?.(item); }}>
         +
       </button>
     {/if}
   {:else if selected}
-    <span class="result-item-action primary" title={i18n("open_title")}>
+    <span class="result-item-action primary" title={i18n(lang, "open_title")}>
       ⏎
     </span>
   {/if}

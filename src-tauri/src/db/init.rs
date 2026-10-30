@@ -44,7 +44,8 @@ pub fn initialize_database(db_path: &Path) -> Result<Connection> {
         INSERT OR IGNORE INTO settings (key, value) VALUES ('db_version', '1');
         INSERT OR IGNORE INTO settings (key, value) VALUES ('auto_analyze', 'false');
         INSERT OR IGNORE INTO settings (key, value) VALUES ('language', 'en');
-        UPDATE settings SET value = 'chrome' WHERE key = 'active_browser' AND value = 'edge';",
+        UPDATE settings SET value = 'chrome' WHERE key = 'active_browser' AND value = 'edge';
+        UPDATE settings SET value = 'zh-CN' WHERE key = 'language' AND value = 'zh';",
     )?;
 
     Ok(conn)

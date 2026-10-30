@@ -47,7 +47,7 @@
     const msg = String(e);
     if (msg.includes("AUTOMATION_DENIED")) {
       const browser = msg.split(":")[1]?.trim() || "浏览器";
-      automationError = i18n("automation_denied", { browser });
+      automationError = i18n(lang, "automation_denied", { browser });
     } else {
       console.error("Browser action failed:", e);
     }
@@ -154,7 +154,7 @@
       <input
         type="text"
         class="search-input"
-        placeholder={i18n("search_placeholder")}
+        placeholder={i18n(lang, "search_placeholder")}
         value={query}
         oninput={(e) => doSearch((e.target as HTMLInputElement).value)}
         spellcheck="false"
@@ -176,12 +176,12 @@
     {/if}
 
     {#if loading}
-      <div class="empty-state">{i18n("searching")}</div>
+      <div class="empty-state">{i18n(lang, "searching")}</div>
     {:else if query.length === 0}
-      <EmptyState message={i18n("type_to_search")} icon="🔍" />
+      <EmptyState message={i18n(lang, "type_to_search")} icon="🔍" />
     {:else if results.length === 0}
-      <EmptyState message={i18n("no_results")} icon="📭">
-        <span class="empty-state-action" onclick={() => onNavigate("manager")}>{i18n("add_page")}</span>
+      <EmptyState message={i18n(lang, "no_results")} icon="📭">
+        <span class="empty-state-action" onclick={() => onNavigate("manager")}>{i18n(lang, "add_page")}</span>
       </EmptyState>
     {:else}
       <ResultList
