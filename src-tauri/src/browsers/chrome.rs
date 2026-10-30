@@ -26,14 +26,18 @@ impl Browser for ChromeBrowser {
             return Ok(Vec::new());
         }
 
+        // Note: `tab` inside a tell block resolves to the app's `tab` class,
+        // so use explicit ASCII characters for field/newline separators.
         let script = r#"
+            set sep to ASCII character 9
             tell application "Google Chrome"
                 set output to ""
                 repeat with w in windows
                     set widx to index of w
+                    set tidx to 0
                     repeat with t in tabs of w
-                        set tidx to index of t
-                        set output to output & widx & tab & tidx & tab & (URL of t) & tab & (title of t) & linefeed
+                        set tidx to tidx + 1
+                        set output to output & widx & sep & tidx & sep & (URL of t) & sep & (title of t) & (ASCII character 10)
                     end repeat
                 end repeat
                 return output
